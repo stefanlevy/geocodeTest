@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Geocoding service</title>
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+		<meta charset="utf-8">
+		<style>
+			html, body {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+			#map {
+				height: 100%;
+			}
+			#floating-panel {
+				position: absolute;
+				top: 10px;
+				left: 25%;
+				z-index: 5;
+				background-color: #fff;
+				padding: 5px;
+				border: 1px solid #999;
+				text-align: center;
+				font-family: 'Roboto','sans-serif';
+				line-height: 30px;
+				padding-left: 10px;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div id="floating-panel">
+			<input id="address" type="textbox" value="Texas">
+			<input id="submit" type="button" value="Geocode">
+		</div>
+	<div id="map"></div>
+	<script>
+		var centerOn;
+		function initMap() {
+			var addresses = ["2551 W Villa Maria Rd. Bryan, TX", "1429 Western Oaks Bryan, TX", "310 Borderbrook Bryan, TX", "3527 Merrick St. Houston, TX"];
+			var venues = ["Obannons Tap House", "Black Water Draw"];
+			var venuesAddresses = ["103 Boyett St. College Station, TX", "303 Boyett St. College Station, TX"];
+			var titles = ["Current", "Old", "College", "Old Houston"];
+			var greenIcon = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+
+			var map = new google.maps.Map(document.getElementById('map'), {
+				zoom: 8,
+				center: {lat: 30.6210723, lng: -96.39041409999999}
+			});
+			var geocoder = new google.maps.Geocoder();
+
+			for(var i = 0; i < addresses.length; i++){
+
+				geocodeAddress(addresses[i], titles[i], '', geocoder, map);
+			}
+			
+			for(var i = 0; i < venuesAddresses.length; i++){
+				geocodeAddress(venuesAddresses[i], venues[i], greenIcon, geocoder, map);
+			}
+
+			document.getElementById('submit').addEventListener('click', function() {
+				geocodeAndCenter(geocoder, map);
+  			});
+		}
+
+
+		function geocodeAddress(address, title, icon, geocoder, resultsMap) {
+			geocoder.geocode({'address': address}, function(results, status) {
+				if (status === google.maps.GeocoderStatus.OK) {
+
+					var infowindow = generateInfoWindow(title, address);
+
+					var marker = new google.maps.Marker({
+						map: resultsMap,
+						icon: icon,
+						position: results[0].geometry.location,
+						title: title
+
+					});
+					marker.addListener('click', function() {
+						resultsMap.setCenter(marker.position);
+    						infowindow.open(resultsMap, marker);
+  					});
+    				} else {
+      					alert('Geocode was not successful for the following reason: ' + status);
+				}
+			});
+		}
+
+		function generateInfoWindow(title, address){
+			var contentString = '<div id="content">'+
+      				'<div id="siteNotice">'+
+      				'</div>'+
+      				'<h1 id="firstHeading" class="firstHeading" style="padding-bottom:0px;">'+title+'</h1>'+
+				'<h5 style="border-bottom:1px solid gray;">'+address+'</h5>'+
+      				'<div id="bodyContent">'+
+      				'<p>blah blah blah.......</br>blah blah</p>'+
+      				'</div>'+
+      				'</div>';
+			var infoWindow = new google.maps.InfoWindow({
+    				content: contentString
+  			});
+			return infoWindow;
+		}
+
+		function geocodeAndCenter(geocoder, map)
+		{
+			var address = document.getElementById('address').value;
+			geocodeAddress(address, "", geocoder, map);
+
+		}
+
+	</script>
+	<script src="https://maps.googleapis.com/maps/api/js?callback=initMap"
+		async defer></script>
+	</body>
+</html>
